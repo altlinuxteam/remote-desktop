@@ -1,0 +1,48 @@
+---
+- name: check required variables
+  fail: msg="{{ item }} is not defined"
+  when: item not in vars
+  with_items: "{{ remote_spice_required_vars }}"
+
+- name: install packages
+  apt_rpm:
+    pkg: xorg-drv-spiceqxl
+    state: installed
+
+- name: purge default xorg configs
+  file:
+    state: "{{ item }}"
+    path: /etc/X11/xorg.conf.d/
+    owner: root
+    group: wheel
+    mode: "0700"
+  with_items:
+    - absent
+    - directory
+
+- name: get TLS listen address
+  shell: |
+    ip r | grep 'scope link' | grep {{remote_spice_tls_network}} | cut -d' ' -f3 | xargs ip -o -4 a sh dev | awk '{print $4;}' | cut -d'/' -f1
+  register: result
+
+- name: register TLS listen address
+  set_fact:
+    tls_address: "{{result.stdout}}"
+
+
+- name: generate new certificate
+  script: "files/gen_cert.sh /etc/ssl/spice {{tls_address}}"
+  args:
+    creates: /etc/ssl/spice
+
+- name: fetch CA certificate to .tmp/
+  fetch:
+    src: /etc/ssl/spice/ca-cert.pem
+    dest: ".tmp/{{inventory_hostname_short}}.ca-cert.pem"
+    flat: yes
+
+- name: generate spice-server config
+  template:
+    src: spice.xorg.conf.j2
+    dest: /etc/X11/xorg.conf
+  notify: restart dm

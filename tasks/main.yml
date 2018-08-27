@@ -1,0 +1,26 @@
+---
+- debug: msg="spice = {{remote_spice|default(false)}}"
+- debug: msg="vnc = {{remote_vnc|default(false)}}"
+- debug: msg="rdp = {{remote_rdp|default(false)}}"
+- debug: msg="x2go = {{remote_x2go|default(false)}}"
+
+- fail:
+    msg: SPICE cannot be mixed with other protocols
+  when: remote_spice|default(false) and (remote_vnc|default(false) or remote_rdp|default(false) or remote_x2go|default(false))
+
+
+- name: configure SPICE
+  include_tasks: spice.yml
+  when: remote_spice|default(false)
+
+- name: configure VNC
+  include_tasks: vnc.yml
+  when: remote_vnc|default(false)
+
+- name: configure RDP
+  include_tasks: rdp.yml
+  when: remote_rdp|default(false)
+
+- name: configure X2GO
+  include_tasks: x2go.yml
+  when: remote_x2go|default(false)

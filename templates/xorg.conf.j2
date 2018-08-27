@@ -1,0 +1,101 @@
+Section "Device"
+    Identifier	"XSPICE QXL"
+    Driver	"spiceqxl"
+
+    # ---- Network and security options
+
+    #Option	"SpiceDisableTicketing" "False"
+    Option	"SpicePassword"		"{{spice_password}}"
+    Option	"SpicePort"		"{{spice_port}}"
+    #Option	"SpiceTlsPort"		"5900"
+    #Option	"SpiceSasl"		"False"
+    #Option	"SpiceX509Dir"		""
+    #Option	"SpiceCacertFile"	""
+    #Option	"SpiceX509KeyFile"	""
+    #Option	"SpiceX509KeyPassword"	""
+    #Option	"SpiceX509CertFile"	""
+    #Option	"SpiceDhFile"		""
+    #Option	"SpiceTlsCiphers"	""
+    #Option	"SpiceAddr"		""
+    #Option	"SpiceIPV4Only"		"True"
+    #Option	"SpiceIPV6Only"		"False"
+    #Option	"SpiceExitOnDisconnect"	"False"
+
+    # ---- Monitor configuration options
+
+    Option	"NumHeads"		"1"
+
+    # ---- Compression options
+
+    #Option	"SpiceZlibGlzWanCompression" "auto"
+    #Option	"SpiceJpegWanCompression" "auto"
+    #Option	"SpiceImageCompression"	"auto_glz"
+    #Option	"SpiceDeferredFPS"	"10"
+    #Option	"SpiceStreamingVideo"	"filter"
+    #Option	"SpiceVideoCodecs"	""
+    #Option	"EnableImageCache"	"True"
+    #Option	"EnableFallbackCache"	"True"
+    #Option	"EnableSurfaces"	"True"
+
+    # ---- Xspice-specific buffer options
+
+    #Option	"SurfaceBufferSize"	"128"
+    #Option	"CommandBufferSize"	"128"
+    #Option	"FrameBufferSize"	"16"
+
+    # ---- VDAgent options
+
+    #Option	"SpiceVdagentEnabled"	"False"
+    #Option	"SpiceVdagentVirtioPath" "/tmp/xspice-virtio"
+    #Option	"SpiceVdagentUinputPath" "/tmp/xspice-uinput"
+    #Option	"SpiceVdagentUid"	"0"
+    #Option	"SpiceVdagentGid"	"0"
+    #Option	"SpiceAgentMouse"	"True"
+    #Option	"SpicePlaybackCompression" "True"
+    #Option	"SpiceDisableCopyPaste"	"False"
+    #Option	"SpicePlaybackFIFODir"	""
+    #Option	"SpiceSmartCardFile"	"/tmp/spice.pcsc.comm"
+EndSection
+
+Section "InputDevice"
+    Identifier	"XSPICE Pointer"
+    Driver	"xspice pointer"
+EndSection
+
+Section "InputDevice"
+    Identifier	"XSPICE Keyboard"
+    Driver	"xspice keyboard"
+EndSection
+
+Section "Monitor"
+    Identifier	"XSPICE Monitor"
+EndSection
+
+Section "Screen"
+    Identifier	"XSPICE Screen"
+    Monitor	"XSPICE Monitor"
+    Device	"XSPICE QXL"
+    DefaultDepth 24
+EndSection
+
+Section "ServerLayout"
+    Identifier	"XSPICE Layout"
+    Screen	"XSPICE Screen"
+    InputDevice	"XSPICE Keyboard"
+    InputDevice	"XSPICE Pointer"
+EndSection
+
+Section "ServerFlags"
+    Option	"AutoAddDevices"	"False"
+EndSection
+
+Section "Module"
+      Load "vnc"
+EndSection
+
+Section "Screen"
+      Identifier "VNC Extension"
+      Option "SecurityTypes" "VncAuth"
+      Option "UserPasswdVerifier" "VncAuth"
+      Option "PasswordFile" "/root/.vnc/passwd"
+EndSection

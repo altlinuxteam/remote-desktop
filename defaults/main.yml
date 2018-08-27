@@ -1,0 +1,10 @@
+---
+remote_spice_required_vars:
+  - remote_spice_password
+  - remote_spice_tls_network
+
+remote_vnc_required_vars:
+  - remote_vnc_password
+
+remote_rdp_required_vars: []
+remote_x2go_required_vars: []

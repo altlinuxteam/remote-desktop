@@ -1,0 +1,24 @@
+---
+- name: check required variables
+  fail: msg="{{ item }} is not defined"
+  when: item not in vars
+  with_items: "{{ remote_rdp_required_vars }}"
+
+- name: install packages
+  apt_rpm:
+    pkg: xrdp
+    state: installed
+
+- name: add test user to the tsusers group
+  user:
+    name: test
+    groups: tsusers
+    append: yes
+
+- name: start and enable xrdp service
+  shell: "systemctl enable xrdp && systemctl start xrdp"
+  register: task_result
+  until: task_result.rc == 0
+  retries: 5
+  delay: 1
+  ignore_errors: yes

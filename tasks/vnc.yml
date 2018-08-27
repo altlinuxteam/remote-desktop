@@ -1,0 +1,24 @@
+---
+- name: check required variables
+  fail: msg="{{ item }} is not defined"
+  when: item not in vars
+  with_items: "{{ remote_vnc_required_vars }}"
+
+- name: install packages
+  apt_rpm:
+    pkg: xorg-extension-vnc
+    state: installed
+
+- name: generate xorg config
+  template:
+    src: vnc.xorg.conf.j2
+    dest: /etc/X11/xorg.conf.d/vnc.conf
+
+- name: create directory
+  file:
+    path: /root/.vnc
+    state: directory
+
+- name: set vnc password
+  shell: "vncpasswd -f <<< {{remote_vnc_password}} > /root/.vnc/passwd"
+  notify: restart dm

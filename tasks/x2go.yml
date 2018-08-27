@@ -1,0 +1,19 @@
+---
+- name: check required variables
+  fail: msg="{{ item }} is not defined"
+  when: item not in vars
+  with_items: "{{ remote_x2go_required_vars }}"
+
+- name: install packages
+  apt_rpm:
+    pkg: "{{ item }}"
+    state: installed
+  with_items:
+    - x2goserver
+    - x2goserver-printing
+
+- name: start and enable x2go service
+  service:
+    name: x2goserver
+    enabled: yes
+    state: started
