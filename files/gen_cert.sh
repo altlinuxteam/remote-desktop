@@ -4,7 +4,8 @@ set -euo pipefail
 
 SERVER_KEY=server-key.pem
 TARGET_PATH=$1 #/etc/ssl/spice
-LISTEN_TLS_IP=$2
+LISTEN_TLS_HOSTNAME=$2
+LISTEN_TLS_IP=$3
 
 # creating a key for our ca
 if [ ! -e ca-key.pem ]; then
@@ -20,11 +21,36 @@ if [ ! -e $SERVER_KEY ]; then
 fi
 # create a certificate signing request (csr)
 if [ ! -e server-key.csr ]; then
-    openssl req -new -key $SERVER_KEY -out server-key.csr -subj "/C=SA/L=Saratov/O=BaseALT/CN=$LISTEN_TLS_IP"
+    openssl req -new -key $SERVER_KEY -out server-key.csr -extensions v3_req -config <(
+cat <<-EOF
+[req]
+default_bits = 2048
+prompt = no
+default_md = sha256
+req_extensions = v3_req
+distinguished_name = dn
+
+[ dn ]
+C=SA
+L=Saratov
+O=BaseALT
+OU=Testing Domain
+emailAddress=testing@smb.basealt.ru
+CN = ${LISTEN_TLS_HOSTNAME}
+
+[ v3_req ]
+subjectAltName = @alt_names
+
+[ alt_names ]
+DNS.0 = ${LISTEN_TLS_HOSTNAME}
+IP.0 = ${LISTEN_TLS_IP}
+EOF
+)
+
 fi
 # signing our server certificate with this ca
 if [ ! -e server-cert.pem ]; then
-    openssl x509 -req -days 1095 -in server-key.csr -CA ca-cert.pem -CAkey ca-key.pem -set_serial 01 -out server-cert.pem
+	openssl x509 -req -extfile <(printf "subjectAltName=DNS:${LISTEN_TLS_HOSTNAME},IP:${LISTEN_TLS_IP}") -days 1095 -in server-key.csr -CA ca-cert.pem -CAkey ca-key.pem -set_serial 01 -out server-cert.pem
 fi
 
 # now create a key that doesn't require a passphrase
